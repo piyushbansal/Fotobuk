@@ -1,0 +1,27 @@
+@auth.requires_login()
+def index():
+    return dict()
+
+@auth.requires_login()
+def insert():
+    db.image.author.default=session.auth.user.first_name
+    form=SQLFORM(db.image)
+    return dict(form=form)
+
+@auth.requires_login()
+def show():
+	image=db.image(request.args(0)) or redirect(URL('index'))
+	db.comment.image_id.default=image.id
+	form = crud.create(db.comment,
+			message='Your comment has been posted',
+			next=URL(args=image.id))
+	comments=db(db.comment.image_id==image.id).select()
+	return dict(image=image,comments=comments,form=form)
+
+def user():
+	return dict(form=auth())
+
+def download():
+	return response.download(request,db)
+
+
